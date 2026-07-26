@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QPushButton, QLabel, QLineEdit, QComboBox, QSizePolicy,
-    QRadioButton, QButtonGroup
+    QRadioButton, QButtonGroup, QFileDialog, QMessageBox
 )
 from PySide6.QtCore import QTimer, Qt
 
@@ -232,14 +232,27 @@ class OfflineWindow(QWidget):
         self.channel_combo = QComboBox()
         self.channel_combo.addItems(CHANNEL_ITEMS)
         self.plot_btn = QPushButton("Plot")
+        self.save_btn = QPushButton("Save Plot")
 
         controls.addWidget(QLabel("Mode:"))
         controls.addWidget(self.mode_combo)
         controls.addWidget(QLabel("Channel:"))
         controls.addWidget(self.channel_combo)
         controls.addWidget(self.plot_btn)
+        controls.addWidget(self.save_btn)
         controls.addStretch()
         layout.addLayout(controls)
+        info_layout = QHBoxLayout()
+
+        self.sampling_label = QLabel(f"Sampling Rate: {int(SAMPLE_RATE)} Hz")
+        self.duration_label = QLabel("Recording Duration: 0.00 s")
+
+        info_layout.addWidget(self.sampling_label)
+        info_layout.addSpacing(30)
+        info_layout.addWidget(self.duration_label)
+        info_layout.addStretch()
+
+        layout.addLayout(info_layout)
 
         from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
         self.fig, self.ax = plt.subplots(figsize=(9, 4))
@@ -247,6 +260,7 @@ class OfflineWindow(QWidget):
         layout.addWidget(self.mpl_canvas)
 
         self.plot_btn.clicked.connect(self._do_plot)
+        self.save_btn.clicked.connect(self._save_plot)
         self._do_plot()
 
     def _do_plot(self):
@@ -256,6 +270,8 @@ class OfflineWindow(QWidget):
         signal = data[ch]
 
         fill = self.viewmodel.get_buffer_fill()
+        duration = fill / SAMPLE_RATE
+        self.duration_label.setText(f"Recording Duration: {duration:.2f} s")
         if fill < BUFFER_SIZE:
             signal = signal[-fill:] if fill > 0 else signal
             t = np.linspace(-fill / SAMPLE_RATE, 0, len(signal))
@@ -270,3 +286,30 @@ class OfflineWindow(QWidget):
         self.ax.grid(True, alpha=0.3)
         self.fig.tight_layout()
         self.mpl_canvas.draw()
+
+    def _save_plot(self):
+        filename, _ = QFileDialog.getSaveFileName(
+            self,
+            "Save Plot",
+            "emg_plot.png",
+            "PNG Files (*.png);;PDF Files (*.pdf);;SVG Files (*.svg);;All Files (*)"
+        )
+
+        if not filename:
+            return
+
+        try:
+            self.fig.savefig(filename, dpi=300, bbox_inches="tight")
+
+            QMessageBox.information(
+                self,
+                "Success",
+                "Plot saved successfully!"
+            )
+
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                "Error",
+                f"Failed to save plot:\n{e}"
+            )

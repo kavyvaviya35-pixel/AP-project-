@@ -35,6 +35,17 @@ Key features:
 
 ---
 
+## Offline Inspector Enhancements
+
+The Offline Inspector includes the following features:
+
+- Added **Save Plot** functionality.
+- Supports exporting plots as **PNG**, **PDF**, and **SVG**.
+- Displays success and error dialogs when saving plots.
+- Displays **Sampling Rate** and **Recording Duration**.
+
+---
+
 ## Team Responsibilities
 
 | Member | Primary Role | Contributions |
@@ -261,6 +272,22 @@ pip install -r requirements.txt
 | `pyopengl` | OpenGL backend required by VisPy |
 
 ---
+
+## Manual Testing
+
+The application was manually tested using the following scenarios:
+
+- [x] Connect to the TCP server
+- [x] Disconnect from the TCP server
+- [x] Visualize a single channel
+- [x] Visualize all channels
+- [x] Switch between Original, RMS, and Filtered modes
+- [x] Open the Offline Inspector
+- [x] Save plots as PNG, PDF, and SVG
+- [x] Display connection errors without crashing
+- [x] Display recording information correctly in the Offline Inspector
+
+--- 
 
 ## License
 
